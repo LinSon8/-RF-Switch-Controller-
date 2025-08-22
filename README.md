@@ -24,8 +24,8 @@ Dieses Projekt verfolgt daher das Ziel, eine **universelle Steuerungseinheit** a
 
 ### 1) Repository klonen
 
-git clone https://github.com/<dein-user>/esp32-s3-scpi-switch.git
-cd esp32-s3-scpi-switch
+git clone [https://github.com/<dein-user>/esp32-s3-scpi-switch.git](https://github.com/LinSon8/-RF-Switch-Controller-.git)
+cd rf-switch-controller
 
 ### 2) Build mit PlatformIO
 
