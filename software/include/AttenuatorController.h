@@ -2,20 +2,19 @@
 
 #include <Arduino.h>
 #include <stdint.h>
-//#include <ComponentController.h>
 #include "MCP23017Controller.h"
 
-class SwitchController
+class AttenuatorController
 {
     protected:
-        uint16_t currentState;
+        float currentAttenuation;
         MCP23017Controller *mcp; 
 
     public:
         bool isMCPUsed = false; // Flag to indicate if MCP23017 is used
-
-        SwitchController();
-        virtual uint16_t setState(uint16_t bitmask) = 0;
-        virtual uint16_t getState() = 0;
+        
+        AttenuatorController();
+        virtual float setAttenuation(int* dB) = 0;
+        virtual float getAttenuation() = 0;
         virtual void reset() = 0;
 };

@@ -71,13 +71,13 @@ void SwitchManager::removeSwitch(const String &switchName)
 }
 
 // set the state of a switch
-void SwitchManager::setSwitchState(const String &switchName, uint16_t bitmask)
+uint16_t SwitchManager::setSwitchState(const String &switchName, uint16_t bitmask)
 {
-    switchMap[switchName]->setState(bitmask);
+    return switchMap[switchName]->setState(bitmask);
 }
 
 // get the state of a switch
-int SwitchManager::getSwitchState(const String &switchName)
+uint16_t SwitchManager::getSwitchState(const String &switchName)
 {
     return switchMap[switchName]->getState();
 }

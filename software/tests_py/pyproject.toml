@@ -1,0 +1,13 @@
+[project]
+name = "hil-esp32"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = ["beeconlab", "pytest>=8.4.1"]
+
+[tool.uv.workspace]
+members = ["libs/hil-setup/software/beeconlab"]
+
+[tool.uv.sources]
+beeconlab = { workspace = true }

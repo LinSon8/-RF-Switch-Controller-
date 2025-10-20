@@ -1,0 +1,63 @@
+import pytest
+
+from labgrid.driver import SerialDriver
+
+from lab_components import multimeter_pymeasure, pdu_multimeter
+
+@pytest.fixture(scope="session")
+def esp32(target):
+    return target.get_driver(SerialDriver, name="driver_esp32")
+
+def test_idn(esp32):
+    esp32.sendline("*IDN?")
+    index, before, match, after = esp32.expect("Test, 123456, Firmware 0.0.1")
+    print(index, before, match, after)
+    if index == 0:
+        esp32.sendline("hello friend")
+    else:
+        esp32.sendline("bye")
+
+def test_spdtmulti(esp32):
+    esp32.sendline("SPDTMULTI=4")
+    index, before, match, after = esp32.expect("SPDT Switches set")
+    print(index, before, match, after)
+    if index == 0:
+        esp32.sendline("hello friend")
+    else:
+        esp32.sendline("bye")
+
+def test_spdtmulti_bin(esp32):
+    esp32.sendline("SPDTMULTI=0b1010")
+    index, before, match, after = esp32.expect("SPDT Switches set")
+    print(index, before, match, after)
+    if index == 0:
+        esp32.sendline("hello friend")
+    else:
+        esp32.sendline("bye")
+
+def test_sp4t_state(esp32):
+    esp32.sendline("SP4TA:STATE?")
+    index, before, match, after = esp32.expect("SP4TA:STATE:0")
+    print(index, before, match, after)
+    if index == 0:
+        esp32.sendline("hello friend")
+    else:
+        esp32.sendline("bye")
+
+def test_sp4t(esp32):
+    esp32.sendline("SP4TA:STATE:4")
+    index, before, match, after = esp32.expect("Current State: 0100")
+    print(index, before, match, after)
+    if index == 0:
+        esp32.sendline("hello friend")
+    else:
+        esp32.sendline("bye")
+
+def test_sp4t_bin(esp32):
+    esp32.sendline("SP4TA:STATE:0b1010")
+    index, before, match, after = esp32.expect("Current State: 1010")
+    print(index, before, match, after)
+    if index == 0:
+        esp32.sendline("hello friend")
+    else:
+        esp32.sendline("bye")

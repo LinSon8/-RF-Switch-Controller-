@@ -14,13 +14,12 @@ SPDTSwitch::SPDTSwitch(const int controlPin, MCP23017Controller &_mcp) : pin(con
     mcp->digitalWrite(pin, LOW);
 }
 
-void SPDTSwitch::setState(uint16_t bitmask)
+uint16_t SPDTSwitch::setState(uint16_t bitmask)
 {
     // Checking if the state is valid
     if (bitmask > 0x1) 
     {
-        Serial.println("ERROR: Ungültiger Zustand");
-        return;
+        return 0xFFFF; // return error code
     }
     // Set State
     currentState = bitmask;
@@ -29,12 +28,11 @@ void SPDTSwitch::setState(uint16_t bitmask)
     if (isMCPUsed) mcp->digitalWrite(pin, bitmask);
     else digitalWrite(pin, bitmask);
 
-    Serial.print("Current State: ");
-    Serial.println(currentState, BIN);
+    return currentState;
 }
 
 // Get current state
-int SPDTSwitch::getState()
+uint16_t SPDTSwitch::getState()
 {
     return currentState;
 }

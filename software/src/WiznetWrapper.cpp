@@ -33,3 +33,8 @@ int8_t wiznet_recv(uint8_t sn, uint8_t * buf, uint16_t len)
 {
     return ::recv(sn, buf, len);
 }
+// Wrapper functions for send()
+int32_t wiznet_send(uint8_t sn, uint8_t * buf, uint16_t len) 
+{
+    return ::send(sn, buf, len);
+}

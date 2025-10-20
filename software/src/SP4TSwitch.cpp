@@ -23,13 +23,12 @@ SP4TSwitch::SP4TSwitch(const int pins[SP4T_SIGNAL_COUNT], MCP23017Controller &_m
     }
 }
 
-void SP4TSwitch::setState(uint16_t bitmask)
+uint16_t SP4TSwitch::setState(uint16_t bitmask)
 {
     // Checking if the state is valid
     if (bitmask > 0xF) 
     {
-        Serial.println("ERROR: Ungültiger Zustand");
-        return;
+        return 0xFFFF; // return error code
     }
     // Set State
     currentState = bitmask;
@@ -57,15 +56,11 @@ void SP4TSwitch::setState(uint16_t bitmask)
             digitalWrite(pinMapping[i], (bitmask >> i) & 1);
         }
     }
-    
-    
-
-    Serial.print("Current State: ");
-    Serial.println(currentState, BIN);
+    return currentState;
 }
 
 // Get current state
-int SP4TSwitch::getState()
+uint16_t SP4TSwitch::getState()
 {
     return currentState;
 }

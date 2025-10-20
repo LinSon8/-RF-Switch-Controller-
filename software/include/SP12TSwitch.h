@@ -15,7 +15,7 @@ class SP12TSwitch : public SwitchController
         SP12TSwitch(const int pins[SP12T_SIGNAL_COUNT]);
         SP12TSwitch(const int pins[SP12T_SIGNAL_COUNT], MCP23017Controller &_mcp);
 
-        void setState(uint16_t bitmask) override;
-        int getState() override; 
+        uint16_t setState(uint16_t bitmask) override;
+        uint16_t getState() override; 
         void reset() override;
 };

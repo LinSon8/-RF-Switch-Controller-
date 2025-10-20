@@ -3,7 +3,19 @@
 // Constructor with Initialization List
 SCPIHandler::SCPIHandler(SwitchManager &manager) : switchManager(manager) {}
 
-void SCPIHandler::processCommand(const String &cmd) 
+char reply[64];
+const char* reply2;
+
+void SCPIHandler::getBinString(char* binStr, size_t binStrSize, uint16_t state, uint8_t bitWidth) 
+{
+    for (int i = bitWidth - 1; i >= 0; i--) 
+    {
+        binStr[bitWidth - 1 - i] = (state & (1 << i)) ? '1' : '0';
+    }
+    binStr[binStrSize - 1] = '\0'; // Null-terminate the string
+}
+
+void SCPIHandler::processCommand(const String &cmd, uint8_t sock) 
 {
     // Reset Command: set all switches to Factory Settings except IP and Subnet
     if (cmd.startsWith("*RST")) 
@@ -19,7 +31,9 @@ void SCPIHandler::processCommand(const String &cmd)
         configManager.saveNetworkSettings(ip, subnet);
 
         delay(500);
-        Serial.println("Restarting...");
+        reply2 = "RESTARTING\r\n";
+        Serial.println(reply2);
+        wiznet_send(sock, (uint8_t*) reply, strlen(reply));
         ESP.restart();
     } 
 
@@ -27,6 +41,9 @@ void SCPIHandler::processCommand(const String &cmd)
     else if (cmd.startsWith("*IDN?")) 
     {
         Serial.println("Test, 123456, Firmware 0.0.1");
+        reply2 = "Test, 123456, Firmware 0.0.1\r\n";
+        wiznet_send(sock, (uint8_t*) reply, strlen(reply));
+        return;
     }
 
     // set multiple SPDT Switches
@@ -36,6 +53,7 @@ void SCPIHandler::processCommand(const String &cmd)
         char id = 'A';
         String switchName = "SPDT";
         String switchNameID;
+        uint16_t currentState;
 
         if (cmd.startsWith("0b", 10)) state = strtoull(cmd.substring(12).c_str(), NULL, 2);
         else state = cmd.substring(10).toInt();
@@ -43,11 +61,28 @@ void SCPIHandler::processCommand(const String &cmd)
         for (int i = 0; i < switchManager.getSwitchCount(switchName); i++)
         {
             switchNameID = switchName + String(id);
-            switchManager.setSwitchState(switchNameID, state >> (i * 1) & 0x1);
+            currentState = switchManager.setSwitchState(switchNameID, state >> (i * 1) & 0x1);
+
+            if (currentState == 0xFFFF) 
+            {
+                reply2 = "ERROR: Invalid state\r\n";
+
+                Serial.println(reply2);
+                wiznet_send(sock, (uint8_t*)reply2, strlen(reply2));
+                return;
+            }
+            else 
+            {
+                char binStr[2]; // 1 bits + null terminator
+
+                getBinString(binStr, sizeof(binStr), currentState, 1);
+                snprintf(reply, sizeof(reply), "%s Switch state set to 0b%s\r\n",switchNameID , binStr);
+                Serial.println(switchNameID + " Switch state set to " + String(currentState, BIN));
+                wiznet_send(sock, (uint8_t*)reply, strlen(reply));
+            }
+
             id++;
         }
-        
-        Serial.println("SPDT Switches set");
     }
 
     // set multiple SP4T Switches
@@ -57,6 +92,7 @@ void SCPIHandler::processCommand(const String &cmd)
         char id = 'A';
         String switchName = "SP4T";
         String switchNameID;
+        uint16_t currentState;
 
         if (cmd.startsWith("0b", 10)) state = strtoull(cmd.substring(12).c_str(), NULL, 2);
         else state = cmd.substring(10).toInt();
@@ -64,10 +100,28 @@ void SCPIHandler::processCommand(const String &cmd)
         for (int i = 0; i < switchManager.getSwitchCount(switchName); i++)
         {
             switchNameID = switchName + String(id);
-            switchManager.setSwitchState(switchNameID, state >> (i * 4) & 0xF);
+            currentState = switchManager.setSwitchState(switchNameID, state >> (i * 4) & 0xF);
+
+            if (currentState == 0xFFFF) 
+            {
+                reply2 = "ERROR: Invalid state\r\n";
+
+                Serial.println(reply2);
+                wiznet_send(sock, (uint8_t*)reply2, strlen(reply2));
+                return;
+            }
+            else 
+            {
+                char binStr[5]; // 4 bits + null terminator
+
+                getBinString(binStr, sizeof(binStr), currentState, 4);
+                snprintf(reply, sizeof(reply), "%s Switch state set to 0b%s\r\n",switchNameID , binStr);
+                Serial.println(switchNameID + " Switch state set to " + String(currentState, BIN));
+                wiznet_send(sock, (uint8_t*)reply, strlen(reply));
+            }
+
             id++;
         }
-        Serial.println("SP4T Switches set");
     }
 
     // set multiple SP6T Switches
@@ -77,6 +131,7 @@ void SCPIHandler::processCommand(const String &cmd)
         char id = 'A';
         String switchName = "SP6T";
         String switchNameID;
+        uint16_t currentState;
 
         if (cmd.startsWith("0b", 10)) state = strtoull(cmd.substring(12).c_str(), NULL, 2);
         else state = cmd.substring(10).toInt();
@@ -84,10 +139,28 @@ void SCPIHandler::processCommand(const String &cmd)
         for (int i = 0; i < switchManager.getSwitchCount(switchName); i++)
         {
             switchNameID = switchName + String(id);
-            switchManager.setSwitchState(switchNameID, state >> (i * 6) & 0x3F);
+            currentState = switchManager.setSwitchState(switchNameID, state >> (i * 6) & 0x3F);
+
+            if (currentState == 0xFFFF) 
+            {
+                reply2 = "ERROR: Invalid state\r\n";
+
+                Serial.println(reply2);
+                wiznet_send(sock, (uint8_t*)reply2, strlen(reply2));
+                return;
+            }
+            else 
+            {
+                char binStr[7]; // 6 bits + null terminator
+
+                getBinString(binStr, sizeof(binStr), currentState, 6);
+                snprintf(reply, sizeof(reply), "%s Switch state set to 0b%s\r\n",switchNameID , binStr);
+                Serial.println(switchNameID + " Switch state set to " + String(currentState, BIN));
+                wiznet_send(sock, (uint8_t*)reply, strlen(reply));
+            }
+
             id++;
         }
-        Serial.println("SP6T Switches set");
     }
 
     // set multiple SP12T Switches
@@ -97,6 +170,7 @@ void SCPIHandler::processCommand(const String &cmd)
         char id = 'A';
         String switchName = "SP12T";
         String switchNameID;
+        uint16_t currentState;
 
         if (cmd.startsWith("0b", 11)) state = strtoull(cmd.substring(13).c_str(), NULL, 2);
         else state = cmd.substring(11).toInt();
@@ -104,10 +178,28 @@ void SCPIHandler::processCommand(const String &cmd)
         for (int i = 0; i < switchManager.getSwitchCount(switchName); i++)
         {
             switchNameID = switchName + String(id);
-            switchManager.setSwitchState(switchNameID, state >> (i * 12) & 0xFFF);
+            currentState = switchManager.setSwitchState(switchNameID, state >> (i * 12) & 0xFFF);
+
+            if (currentState == 0xFFFF) 
+            {
+                reply2 = "ERROR: Invalid state\r\n";
+
+                Serial.println(reply2);
+                wiznet_send(sock, (uint8_t*)reply2, strlen(reply2));
+                return;
+            }
+            else 
+            {
+                char binStr[13]; // 12 bits + null terminator
+
+                getBinString(binStr, sizeof(binStr), currentState, 12);
+                snprintf(reply, sizeof(reply), "%s Switch state set to 0b%s\r\n",switchNameID , binStr);
+                Serial.println(switchNameID + " Switch state set to " + String(currentState, BIN));
+                wiznet_send(sock, (uint8_t*)reply, strlen(reply));
+            }
+
             id++;
         }
-        Serial.println("SP12T Switches set");
     }
 
     // Single SPDT Switch Command
@@ -118,28 +210,60 @@ void SCPIHandler::processCommand(const String &cmd)
 
         if (!switchManager.hasSwitch(switchNameID)) 
         {
-            Serial.println("ERROR: Switch not found");
+            reply2 = "ERROR: Switch not found\r\n";
+            Serial.println(reply2);
+            wiznet_send(sock, (uint8_t*)reply2, strlen(reply2));
             return;
         }
-        // Zustand abfragen
+        // get state
         if (cmd.startsWith(":STATE?", 5))
         {
-            Serial.print(switchNameID + ":STATE: ");
-            Serial.println(switchManager.getSwitchState(switchNameID));
+            uint16_t currentState = switchManager.getSwitchState(switchNameID);
+            char binStr[1]; // 1 bits + null terminator
+
+            getBinString(binStr, sizeof(binStr), currentState, 1);
+            snprintf(reply, sizeof(reply), "%s:STATE:0b%s\r\n",switchNameID , binStr);
+            Serial.println(switchNameID + ":STATE:" + String(currentState, BIN));
+            wiznet_send(sock, (uint8_t*)reply, strlen(reply));
         }
         // Set state of a SPDT Switch
         else if (cmd.startsWith(":STATE:", 5))
         {
             uint16_t state;
+            uint16_t currentState;
 
             if (cmd.startsWith("0b", 12)) state = strtoull(cmd.substring(14).c_str(), NULL, 2);
             else state = cmd.substring(12).toInt();
 
-            switchManager.setSwitchState(switchNameID, state & 0x1);
-            Serial.println(switchNameID + " Switch state set");
+            currentState = switchManager.setSwitchState(switchNameID, state & 0x1);
+            
+            if (currentState == 0xFFFF) 
+            {
+                reply2 = "ERROR: Invalid state\r\n";
+
+                Serial.println(reply2);
+                wiznet_send(sock, (uint8_t*)reply2, strlen(reply2));
+                return;
+            }
+            else 
+            {
+                char binStr[2]; // 1 bits + null terminator
+
+                getBinString(binStr, sizeof(binStr), currentState, 1);
+                snprintf(reply, sizeof(reply), "%s Switch state set to 0b%s\r\n",switchNameID , binStr);
+                Serial.println(switchNameID + " Switch state set to " + String(currentState, BIN));
+                wiznet_send(sock, (uint8_t*)reply, strlen(reply));
+            }
         }
 
-        else Serial.println("ERROR: SPDT Command not found");
+        else
+        {
+            reply2 = "ERROR: SPDT Command not found\r\n";
+
+            Serial.println(reply2);
+            wiznet_send(sock, (uint8_t*)reply2, strlen(reply2));
+            return;
+        }    
     } 
 
     // Single SP4T Switch Command
@@ -150,28 +274,60 @@ void SCPIHandler::processCommand(const String &cmd)
 
         if (!switchManager.hasSwitch(switchNameID)) 
         {
-            Serial.println("ERROR: Switch not found");
+            reply2 = "ERROR: Switch not found\r\n";
+
+            Serial.println(reply2);
+            wiznet_send(sock, (uint8_t*)reply2, strlen(reply2));
             return;
         }
-        // Zustand abfragen
+        // get state
         if (cmd.startsWith(":STATE?", 5))
         {
-            Serial.print(switchNameID + ":STATE: ");
-            Serial.println(switchManager.getSwitchState(switchNameID));
+            uint16_t currentState = switchManager.getSwitchState(switchNameID);
+            char binStr[5]; // 4 bits + null terminator
+
+            getBinString(binStr, sizeof(binStr), currentState, 4);
+            snprintf(reply, sizeof(reply), "%s:STATE:0b%s\r\n",switchNameID , binStr);
+            Serial.println(switchNameID + ":STATE:" + String(currentState, BIN));
+            wiznet_send(sock, (uint8_t*)reply, strlen(reply));
         }
         // Set state of a SP4T Switch
         else if (cmd.startsWith(":STATE:", 5))
         {
             uint16_t state;
+            uint16_t currentState;
 
             if (cmd.startsWith("0b", 12)) state = strtoull(cmd.substring(14).c_str(), NULL, 2);
             else state = cmd.substring(12).toInt();
 
-            switchManager.setSwitchState(switchNameID, state & 0xF);
-            Serial.println(switchNameID + " Switch state set");
+            currentState = switchManager.setSwitchState(switchNameID, state & 0xF);
+            if (currentState == 0xFFFF) 
+            {
+                reply2 = "ERROR: Invalid state\r\n";
+
+                Serial.println(reply2);
+                wiznet_send(sock, (uint8_t*)reply2, strlen(reply2));
+                return;
+            }
+            else 
+            {
+                char binStr[5]; // 4 bits + null terminator
+
+                getBinString(binStr, sizeof(binStr), currentState, 4);
+                snprintf(reply, sizeof(reply), "%s Switch state set to 0b%s\r\n",switchNameID , binStr);
+                Serial.println(switchNameID + " Switch state set to " + String(currentState, BIN));
+                wiznet_send(sock, (uint8_t*)reply, strlen(reply));
+            }
         }
 
-        else Serial.println("ERROR: SP4T Command not found");
+        else 
+        {
+            reply2 = "ERROR: SP4T Command not found\r\n";
+
+            Serial.println(reply2);
+            wiznet_send(sock, (uint8_t*)reply2, strlen(reply2));
+            return;
+        }
     } 
     
     // Single SP6T Switch Command
@@ -182,28 +338,61 @@ void SCPIHandler::processCommand(const String &cmd)
 
         if (!switchManager.hasSwitch(switchNameID)) 
         {
-            Serial.println("ERROR: Switch not found");
+            reply2 = "ERROR: Switch not found\r\n";
+
+            Serial.println(reply2);
+            wiznet_send(sock, (uint8_t*)reply2, strlen(reply2));
             return;
         }
-        // Zustand abfragen
+        // get state
         if (cmd.startsWith(":STATE?", 5))
         {
-            Serial.print(switchNameID + ":STATE: ");
-            Serial.println(switchManager.getSwitchState(switchNameID));
+            uint16_t currentState = switchManager.getSwitchState(switchNameID);
+            char binStr[7]; // 6 bits + null terminator
+
+            getBinString(binStr, sizeof(binStr), currentState, 6);
+            snprintf(reply, sizeof(reply), "%s:STATE:0b%s\r\n",switchNameID , binStr);
+            Serial.println(switchNameID + ":STATE:" + String(currentState, BIN));
+            wiznet_send(sock, (uint8_t*)reply, strlen(reply));
         }
         // Set state of a SP6T Switch
         else if (cmd.startsWith(":STATE:", 5))
         {
             uint16_t state;
+            uint16_t currentState;
 
             if (cmd.startsWith("0b", 12)) state = strtoull(cmd.substring(14).c_str(), NULL, 2);
             else state = cmd.substring(12).toInt();
             
-            switchManager.setSwitchState(switchNameID, state & 0x3F);
-            Serial.println(switchNameID + " Switch state set");
+            currentState = switchManager.setSwitchState(switchNameID, state & 0x3F);
+
+            if (currentState == 0xFFFF) 
+            {
+                reply2 = "ERROR: Invalid state\r\n";
+
+                Serial.println(reply2);
+                wiznet_send(sock, (uint8_t*)reply2, strlen(reply2));
+                return;
+            }
+            else 
+            {
+                char binStr[7]; // 6 bits + null terminator
+
+                getBinString(binStr, sizeof(binStr), currentState, 6);
+                snprintf(reply, sizeof(reply), "%s Switch state set to 0b%s\r\n",switchNameID , binStr);
+                Serial.println(switchNameID + " Switch state set to " + String(currentState, BIN));
+                wiznet_send(sock, (uint8_t*)reply, strlen(reply));
+            }
         }
 
-        else Serial.println("ERROR: SP6T Command not found");
+        else 
+        {
+            reply2 = "ERROR: SP6T Command not found\r\n";
+
+            Serial.println(reply2);
+            wiznet_send(sock, (uint8_t*)reply2, strlen(reply2));
+            return;
+        }
     } 
 
     // Single SP12T Switch Command
@@ -214,28 +403,65 @@ void SCPIHandler::processCommand(const String &cmd)
 
         if (!switchManager.hasSwitch(switchNameID)) 
         {
-            Serial.println("ERROR: Switch not found");
+            reply2 = "ERROR: Switch not found\r\n";
+
+            Serial.println(reply2);
+            wiznet_send(sock, (uint8_t*)reply2, strlen(reply2));
             return;
         }
-        // Zustand abfragen
+        // get state
         if (cmd.startsWith(":STATE?", 6))
         {
-            Serial.print(switchNameID + ":STATE: ");
-            Serial.println(switchManager.getSwitchState(switchNameID));
+            uint16_t currentState = switchManager.getSwitchState(switchNameID);
+            char binStr[13]; // 12 bits + null terminator
+
+            getBinString(binStr, sizeof(binStr), currentState, 12);
+            snprintf(reply, sizeof(reply), "%s:STATE:0b%s\r\n",switchNameID , binStr);
+            Serial.println(switchNameID + ":STATE:" + String(currentState, BIN));
+            wiznet_send(sock, (uint8_t*)reply, strlen(reply));
         }
         // Set state of a SP12T Switch
         else if (cmd.startsWith(":STATE:", 6))
         {
             uint16_t state;
+            uint16_t currentState;
 
             if (cmd.startsWith("0b", 13)) state = strtoull(cmd.substring(15).c_str(), NULL, 2);
             else state = cmd.substring(13).toInt();
             
-            switchManager.setSwitchState(switchNameID, state & 0xFFF);
-            Serial.println(switchNameID + " Switch state set");
-        }
+            currentState = switchManager.setSwitchState(switchNameID, state & 0xFFF);
 
-        else Serial.println("ERROR: SP12T Command not found");
+            if (currentState == 0xFFFF) 
+            {
+                reply2 = "ERROR: Invalid state\r\n";
+
+                Serial.println(reply2);
+                wiznet_send(sock, (uint8_t*)reply2, strlen(reply2));
+                return;
+            }
+            else 
+            {
+                char binStr[13]; // 12 bits + null terminator
+
+                getBinString(binStr, sizeof(binStr), currentState, 12);
+                snprintf(reply, sizeof(reply), "%s Switch state set to 0b%s\r\n",switchNameID , binStr);
+                Serial.println(switchNameID + " Switch state set to " + String(currentState, BIN));
+                wiznet_send(sock, (uint8_t*)reply, strlen(reply));
+            }
+        }
+        else 
+        {
+            reply2 = "ERROR: SP12T Command not found\r\n";
+
+            Serial.println(reply2);
+            wiznet_send(sock, (uint8_t*)reply2, strlen(reply2));
+        }
     }    
-    else Serial.println("ERROR: Command not found");
+    else 
+    {
+        reply2 = "ERROR: Command not found\r\n";
+
+        Serial.println(reply2);
+        wiznet_send(sock, (uint8_t*)reply2, strlen(reply2));
+    }
 }

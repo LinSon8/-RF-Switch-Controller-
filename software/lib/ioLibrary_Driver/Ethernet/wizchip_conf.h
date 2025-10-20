@@ -345,7 +345,7 @@ typedef   int16_t   datasize_t;     ///< sent or received data size
 #endif   
 
 #if _WIZCHIP_ >= W5200
-   #define _WIZCHIP_SOCK_NUM_   1   ///< The count of independant socket of @b WIZCHIP
+   #define _WIZCHIP_SOCK_NUM_   8   ///< The count of independant socket of @b WIZCHIP
 #else
    #define _WIZCHIP_SOCK_NUM_   4   ///< The count of independant socket of @b WIZCHIP
 #endif      

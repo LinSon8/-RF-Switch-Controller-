@@ -1,0 +1,29 @@
+targets:
+  main:
+    resources:
+      - cls: NetworkPowerPort
+        name: pdu_port_multimeter
+        model: argus_sw_0816
+        host: "http://admin:admin@10.0.0.100"
+        index: 5
+
+      - cls: NetworkSerialPort
+        name: tcp_port_esp32
+        host: "localhost"
+        port: 7777
+        protocol: raw
+
+    drivers:
+      - cls: SerialDriver
+        name: driver_esp32
+        bindings:
+          port: tcp_port_esp32
+
+      - cls: PymeasureVISAAdapterDriver
+        name: driver_multimeter_pymeasure
+        host: "TCPIP0::10.0.0.102::INSTR"
+
+      - cls: CustomNetworkPowerDriver
+        name: pdu_multimeter
+        bindings:
+          port: pdu_port_multimeter

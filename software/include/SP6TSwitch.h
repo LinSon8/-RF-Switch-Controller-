@@ -15,7 +15,7 @@ class SP6TSwitch : public SwitchController
         SP6TSwitch(const int pins[SP6T_SIGNAL_COUNT]);
         SP6TSwitch(const int pins[SP6T_SIGNAL_COUNT], MCP23017Controller &_mcp);
 
-        void setState(uint16_t bitmask) override;
-        int getState() override; 
+        uint16_t setState(uint16_t bitmask) override;
+        uint16_t getState() override; 
         void reset() override;
 };

@@ -23,13 +23,13 @@ SP6TSwitch::SP6TSwitch(const int pins[SP6T_SIGNAL_COUNT], MCP23017Controller &_m
     }
 }
 
-void SP6TSwitch::setState(uint16_t bitmask)
+uint16_t SP6TSwitch::setState(uint16_t bitmask)
 {
+    char reply[64];
     // Checking if the state is valid
     if (bitmask > 0x3F) 
     {
-        Serial.println("ERROR: Ungültiger Zustand");
-        return;
+        return 0xFFFF; // Invalid state for SP6T switch
     }
     // Set State
     currentState = bitmask;
@@ -57,13 +57,11 @@ void SP6TSwitch::setState(uint16_t bitmask)
             digitalWrite(pinMapping[i], (bitmask >> i) & 1);
         }
     }
-
-    Serial.print("Current State: ");
-    Serial.println(currentState, BIN);
+    return currentState;
 }
 
 // Get current state
-int SP6TSwitch::getState()
+uint16_t SP6TSwitch::getState()
 {
     return currentState;
 }

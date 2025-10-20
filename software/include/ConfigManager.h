@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <Preferences.h>
 #include <SPI.h>
+#include "Config.h"
 #include "WiznetWrapper.h"
 
 #ifdef MR
@@ -18,13 +19,10 @@ extern "C"
     #include "w5500.h"
 }
 
-const int TCP_PORT = 5025; // SCPI TCP Port
-const int SOCKET_NUM = 0; // Socket number for SCPI TCP connection
 const int CS_PIN = 10; // Chip Select pin for W5500
 const int MOSI_PIN = 11; // SPI MOSI pin
 const int SCLK_PIN = 12; // SPI Clock pin
 const int MISO_PIN = 13; // SPI MISO pin
-extern uint8_t socketBuffer[2048]; // Buffer for socket data
 
 
 class ConfigManager
@@ -35,7 +33,7 @@ class ConfigManager
     public:
         void saveNetworkSettings(IPAddress ip, IPAddress subnet);
         void loadNetworkSettings(IPAddress &ip, IPAddress &subnet);
-        void setupEthernet();
+        bool setupEthernet(IPAddress ip, IPAddress subnet);
 };
 
 // SPI-Callbackfunktionen

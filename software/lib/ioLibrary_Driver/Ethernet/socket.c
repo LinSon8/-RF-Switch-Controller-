@@ -62,12 +62,12 @@ static uint16_t sock_any_port = SOCK_ANY_PORT_NUM;
 static uint16_t sock_io_mode = 0;
 static uint16_t sock_is_sending = 0;
 
-static uint16_t sock_remained_size[_WIZCHIP_SOCK_NUM_] = {0}; // Changed deklaration for 1 socket use
-//static uint16_t sock_remained_size[_WIZCHIP_SOCK_NUM_] = {0,0,}; // Usual deklaration
+//static uint16_t sock_remained_size[_WIZCHIP_SOCK_NUM_] = {0}; // Changed deklaration for 1 socket use
+static uint16_t sock_remained_size[_WIZCHIP_SOCK_NUM_] = {0,0,0,0,0,0,0,0}; // Usual deklaration
 
 //M20150601 : For extern decleation
 //static uint8_t  sock_pack_info[_WIZCHIP_SOCK_NUM_] = {0,};
-uint8_t  sock_pack_info[_WIZCHIP_SOCK_NUM_] = {0,};
+uint8_t  sock_pack_info[_WIZCHIP_SOCK_NUM_] = {0,0,0,0,0,0,0,0};
 //
 
 #if _WIZCHIP_ == 5200

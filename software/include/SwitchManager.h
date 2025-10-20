@@ -18,8 +18,8 @@ class SwitchManager
         ~SwitchManager();
         void addSwitch(const String &switchName, SwitchController *newSwitch);
         void removeSwitch(const String &switchName);
-        void setSwitchState(const String &switchName, uint16_t bitmask);
-        int getSwitchState(const String &switchName);  
+        uint16_t setSwitchState(const String &switchName, uint16_t bitmask);
+        uint16_t getSwitchState(const String &switchName);  
         int getSwitchCount(const String &switchName);
         boolean hasSwitch(const String &switchName);
         void resetSwitch(const String &switchName);

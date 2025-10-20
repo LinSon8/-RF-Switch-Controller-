@@ -23,13 +23,12 @@ SP12TSwitch::SP12TSwitch(const int pins[SP12T_SIGNAL_COUNT], MCP23017Controller 
     }
 }
 
-void SP12TSwitch::setState(uint16_t bitmask)
+uint16_t SP12TSwitch::setState(uint16_t bitmask)
 {
     // Checking if the state is valid
     if (bitmask > 0xFFF) 
     {
-        Serial.println("ERROR: Ungültiger Zustand");
-        return;
+        return 0xFFFF;
     }
     // Set State
     currentState = bitmask;
@@ -60,10 +59,11 @@ void SP12TSwitch::setState(uint16_t bitmask)
     
     Serial.print("Current State: ");
     Serial.println(currentState, BIN);
+    return currentState;
 }
 
 // Get current state
-int SP12TSwitch::getState()
+uint16_t SP12TSwitch::getState()
 {
     return currentState;
 }

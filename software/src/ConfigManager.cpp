@@ -3,13 +3,6 @@
 #define RW_MODE false
 #define RO_MODE true
 
-uint8_t socketBuffer[2048]; // Buffer for socket data
-
-// Standard MAC-Address
-byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-IPAddress standardIP = {192, 168, 2, 150}; 
-IPAddress standardSubnet = {255, 255, 255, 0}; 
-
 // SPI-Callback functions for W5500
 void wizchip_select()               { digitalWrite(CS_PIN, LOW); } 
 void wizchip_deselect()             { digitalWrite(CS_PIN, HIGH); } 
@@ -78,11 +71,10 @@ void ConfigManager::loadNetworkSettings(IPAddress &ip, IPAddress &subnet)
 }
 
 // Start Ethernet server with saved network settings or default settings
-void ConfigManager::setupEthernet()
+bool ConfigManager::setupEthernet(IPAddress ip, IPAddress subnet)
 {
-    IPAddress ip, subnet;
     // load network data from NVS-Storage if available, otherwise load the standard data
-    loadNetworkSettings(ip, subnet);
+    saveNetworkSettings(ip, subnet);
 
     // start Ethernet
     pinMode(CS_PIN, OUTPUT); 
@@ -93,7 +85,7 @@ void ConfigManager::setupEthernet()
     SPI.begin(SCLK_PIN, MISO_PIN, MOSI_PIN, CS_PIN); // Initialize SPI with custom pins
     Serial.println("SPI initialized for W5500...");
     
-    SPI.setFrequency(500000); // Set SPI frequency to 
+    SPI.setFrequency(250000); // Set SPI frequency to 
     Serial.println("SPI frequency set to 1MHz...");
 
     reg_wizchip_cs_cbfunc(wizchip_select, wizchip_deselect); // Register CS callback functions
@@ -110,8 +102,8 @@ void ConfigManager::setupEthernet()
     setSn_CR(i, Sn_CR_CLOSE);
     }
 
-    uint8_t txsize[1] = {2}; // 2KB TX buffer size
-    uint8_t rxsize[1] = {2}; // 2KB RX buffer size
+    uint8_t txsize[8] = {2, 2, 2, 2, 2, 2, 2, 2}; // 2KB TX buffer size
+    uint8_t rxsize[8] = {2, 2, 2, 2, 2, 2, 2, 2}; // 2KB RX buffer size
     Serial.println("Setting TX and RX buffer sizes...");
     if (wizchip_init(txsize, rxsize) == 0) // Initialize W5500 with buffer sizes
     {
@@ -120,6 +112,7 @@ void ConfigManager::setupEthernet()
     else
     {
         Serial.println("W5500 initialization failed!");
+        return false;
     }
 
     for (int i = 0; i < 8; i++) 
@@ -185,4 +178,5 @@ void ConfigManager::setupEthernet()
     //    if (b < 5) Serial.print("-");
     //}
     //Serial.println();
+    return true;
 }
