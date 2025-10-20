@@ -2,7 +2,7 @@
 
 
 This project was developed as part of my bachelor’s thesis at Technische Universität Berlin. It demonstrates the design of a modular, network-based control unit for hardware test automation.
-The goal is to provide a cost-effective and flexible solution to control RF switches, attenuators, and relays using **SCPI-Befehle (Standard Commands for Programmable Instruments)**.
+The goal is to provide a cost-effective and flexible solution to control RF switches, attenuators, and relays using **SCPI Commands (Standard Commands for Programmable Instruments)**.
 
 ## Motivation
 Commercial control solutions for switching components often cost several thousand euros.
@@ -12,7 +12,7 @@ The purpose of this project is to develop a **universal control unit** based on 
 - Control via **Ethernet (W5500 Chip, SPI, ioLibrary_Driver)**
 - Communication using **SCPI/TCP (laboratory equipment standard)**
 - Modular expansion for various switching components
-- 
+
 ## Hardware / Software
 - **Board:** ESP32-S3 DevKitC-1  
 - **Framework:** Arduino (PlatformIO, VS Code)  
@@ -35,7 +35,9 @@ pio run -t upload
 ### 3) Configure network settings
 
 IP: 10.0.0.220
+
 Subnet: 255.255.255.0
+
 Port: 5025
 
 These can be adjusted in the code (Config.cpp).
